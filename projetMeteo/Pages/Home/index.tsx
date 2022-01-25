@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, TextInput, Button, Image } from 'react-native';
+import { StyleSheet, Text, View, TextInput, Button, Image, ImageBackground } from 'react-native';
 import Geolocation from '@react-native-community/geolocation';
 
 const Home = ({ navigation }: any) => {
@@ -12,10 +12,12 @@ const Home = ({ navigation }: any) => {
 
   const [ville, setVille] = useState('');
   const apiKey = "032cf4f8f4ea0479f5a02354c7508195";
-  var MeteoTableau: { Date: any; Temps: any; Temperature: any; }[] = [];
+  var MeteoTableau: { Date: any; Temps: any; Temperature: any; Image: any }[] = [];
 
   const Recherche = () => {
-    console.log(ville);
+    MeteoTableau = [];
+
+    // console.log(ville);
     fetch('https://api.openweathermap.org/data/2.5/forecast?q=' + ville + '&units=metric&appid=' + apiKey)
     .then((response) => response.json())
     .then((json) => {
@@ -31,8 +33,11 @@ const Home = ({ navigation }: any) => {
           date = dateSplit[0];
           temps = k.weather[0].main;
           temperature = k.main.temp;
-
-          MeteoTableau.push({Date: date, Temps: temps, Temperature: temperature});
+        
+          var dateSplitFormat = date.split('-');
+          var dateFinal = dateSplitFormat[2]+"/"+dateSplitFormat[1]+"/"+dateSplitFormat[0];
+          
+          MeteoTableau.push({Date: dateFinal, Temps: temps, Temperature: temperature, Image: null});
         }else{
           var date2 = k.dt_txt;
           var dateSplit2 = date2.split(' ');
@@ -43,7 +48,11 @@ const Home = ({ navigation }: any) => {
             date = date2;
             temps = k.weather[0].main;
             temperature = k.main.temp;
-            MeteoTableau.push({Date: date, Temps: temps, Temperature: temperature});
+            
+            var date2SplitFormat = date2.split('-');
+            var dateFinal = date2SplitFormat[2]+"/"+date2SplitFormat[1]+"/"+date2SplitFormat[0];
+
+            MeteoTableau.push({Date: dateFinal, Temps: temps, Temperature: temperature, Image: null});
           }
         }
 
@@ -58,8 +67,7 @@ const Home = ({ navigation }: any) => {
     var lon = 0;
 
     Geolocation.getCurrentPosition(
-      info => 
-      console.log(info.coords.latitude + " | " + info.coords.longitude)
+      info => console.log(info.coords.latitude + " | " + info.coords.longitude)
     );
 
     Geolocation.getCurrentPosition(
@@ -84,46 +92,44 @@ const Home = ({ navigation }: any) => {
   }
 
   return (
-    <View style={styles.container}>
+    <ImageBackground source={require('../../assets/fond.jpg')} style={styles.imageBackground}>
+      <View style={styles.container}>
 
-      <Text style={styles.textTitre}>Appli météo</Text>
+        <Text style={styles.textTitre}>Appli météo</Text>
 
-      <Image
-        style={styles.image}
-        source={require('../../assets/icon.jpg')}
-      />
+        <Image
+          style={styles.image}
+          source={require('../../assets/icon.jpg')}
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Nom de la ville"
-        onChangeText={newVille => setVille(newVille)}
-        keyboardType="default"
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Nom de la ville"
+          onChangeText={newVille => setVille(newVille)}
+          keyboardType="default"
+        />
 
-      <Button
-        color="red"
-        title="Valider"
-        onPress={Recherche}
-        // onPress={() => {
-        //     navigation.navigate("info", { ville: ville });
-        //   }}
-      />
+        <Button
+          color="red"
+          title="Valider"
+          onPress={Recherche}
+        />
 
-      <Button
-        color="green"
-        title="Me géolocaliser"
-        onPress={Geolocalisation}
-      />
+        <Button
+          color="green"
+          title="Me géolocaliser"
+          onPress={Geolocalisation}
+        />
 
-      <StatusBar style="auto" />
-    </View>
+        <StatusBar style="auto" />
+      </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: '#fff',
       alignItems: 'center',
       justifyContent: 'center',
     },
@@ -140,6 +146,10 @@ const styles = StyleSheet.create({
     },
     textTitre:{
       fontSize: 20
+    },
+    imageBackground:{
+      flex: 1,
+      justifyContent: "center"
     }
   });
   
