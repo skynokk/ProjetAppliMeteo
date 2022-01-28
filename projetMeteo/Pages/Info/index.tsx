@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, View, TextInput, Button, Image, FlatList, TouchableOpacity, Share } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 //Ajouter la température maximum et minimum de la journée
 const Item = ({ jour, date, temperature, image }: any) => (
     <View style={styles.item}>
-      <Text style={styles.textInfo}>{jour} : {date} {"\n"}{temperature} °C</Text>
-      <Image style={styles.imageItem} source={image} />
+        <Text style={styles.textInfo}>{jour} : {date} {"\n"}{temperature} °C</Text>
+        <Image style={styles.imageItem} source={image} />
     </View>
-  );
+);
 
 const Info = ({ route, navigation }: any) => {
     const { ville } = route.params;
@@ -16,96 +17,132 @@ const Info = ({ route, navigation }: any) => {
 
     //console.log(tableau);
 
-    for(var lucas of tableau){
+    for (var tabVille of tableau) {
         var image = null;
-        //console.log(lucas);
-        var Timestamp = new Date(lucas.Timestamp*1000).toString();
+        //console.log(tabVille);
+        var Timestamp = new Date(tabVille.Timestamp * 1000).toString();
         //console.log(TimestampTest);
         var TimestampSplit = Timestamp.split(' ');
         var TimestampJour = TimestampSplit[0];
 
-        switch(lucas.Temps){
+        switch (tabVille.Temps) {
             case "Clear":
                 image = require('../../assets/clear.png');
-                lucas.Image = image;
+                tabVille.Image = image;
                 break;
             case "Rain":
                 image = require('../../assets/rain.png');
-                lucas.Image = image;
+                tabVille.Image = image;
                 break;
             case "Storm":
                 image = require('../../assets/storm.png');
-                lucas.Image = image;
+                tabVille.Image = image;
                 break;
             case "Clouds":
                 image = require('../../assets/cloud.png');
-                lucas.Image = image;
+                tabVille.Image = image;
                 break;
             case "Snow":
                 image = require('../../assets/snow.png');
-                lucas.Image = image;
+                tabVille.Image = image;
                 break;
         }
 
-        switch(TimestampJour){
+        switch (TimestampJour) {
             case "Mon":
-                lucas.Timestamp = "Lundi";
+                tabVille.Timestamp = "Lundi";
                 break;
             case "Tue":
-                lucas.Timestamp = "Mardi";
+                tabVille.Timestamp = "Mardi";
                 break;
             case "Wed":
-                lucas.Timestamp = "Mercredi";
+                tabVille.Timestamp = "Mercredi";
                 break;
             case "Thu":
-                lucas.Timestamp = "Jeudi";
+                tabVille.Timestamp = "Jeudi";
                 break;
             case "Fri":
-                lucas.Timestamp = "Vendredi";
+                tabVille.Timestamp = "Vendredi";
                 break;
             case "Sat":
-                lucas.Timestamp = "Samedi";
+                tabVille.Timestamp = "Samedi";
                 break;
             case "Sun":
-                lucas.Timestamp = "Dimanche";
+                tabVille.Timestamp = "Dimanche";
                 break;
         }
     }
 
     //Fonction afin de vérifier si ville est dans les favoris ou non
     useEffect(() => {
-      var villeBdd = "Aix-en-Provence";
+        async function AsyncFonction() {
+            setFavoris(false);
 
-      if(ville.toLowerCase() == villeBdd.toLowerCase()){
-        setFavoris(true)
-      }else{
-        setFavoris(false)
-      }
+            let jsonValue = await AsyncStorage.getItem('@favoris');
+            jsonValue = jsonValue != null ? JSON.parse(jsonValue) : null;
+            if (jsonValue != null) {
+                var tabFavoris: any = [];
+                for (let k of jsonValue) {
+                    if (ville.toLowerCase() == k.toLowerCase()) {
+                        setFavoris(true)
+                    }
+                }
+            }
+        }
+        AsyncFonction();
     }, []);
 
     const renderItem = ({ item }: any) => (
-        <Item jour={item.Timestamp} date={item.Date} temperature={item.Temperature} image={item.Image}/>
+        <Item jour={item.Timestamp} date={item.Date} temperature={item.Temperature} image={item.Image} />
     );
 
 
-    //Manque la base de données
-    const favorisClick = async () => {  
-        if(favoris == false){
-            setFavoris(true)
-            //Ajout bdd du nom de la ville
-            console.log(ville);
-        }else{
-            setFavoris(false)
-            //suppresion bdd du nom de la ville
-            console.log(ville);
+    const storeData = async (value: any) => {
+        let jsonValue = await AsyncStorage.getItem('@favoris');
+        jsonValue = jsonValue != null ? JSON.parse(jsonValue) : null;
+        if (jsonValue != null) {
+            var tabFavoris: any = [];
+            for (let k of jsonValue) {
+                tabFavoris.push(k);
+            }
+            tabFavoris.push(value);
+
+            AsyncStorage.setItem('@favoris', JSON.stringify(tabFavoris));
+        } else {
+            AsyncStorage.setItem('@favoris', JSON.stringify([value]));
+        }
+    }
+
+    const deleteData = async (value: any) => {
+        let jsonValue = await AsyncStorage.getItem('@favoris');
+        jsonValue = jsonValue != null ? JSON.parse(jsonValue) : null;
+        if (jsonValue != null) {
+            var tabFavoris: any = [];
+
+            for (let k of jsonValue) {
+                if (k.toLowerCase() != value.toLowerCase()) {
+                    tabFavoris.push(k);
+                }
+            }
+            AsyncStorage.setItem('@favoris', JSON.stringify(tabFavoris));
+        }
+    }
+
+    const favorisClick = async () => {
+        if (favoris == false) {
+            setFavoris(true);
+            storeData(ville);
+        } else {
+            setFavoris(false);
+            deleteData(ville);
         }
     }
 
     const partage = async () => {
-        var message = "Voici la météo de "+ville+ " : ";
-        for(let k of tableau){
+        var message = "Voici la météo de " + ville + " : ";
+        for (let k of tableau) {
             var temps = k.Temps;
-            switch(temps){
+            switch (temps) {
                 case "Clear":
                     temps = "il y aura du soleil"
                     break;
@@ -123,7 +160,7 @@ const Info = ({ route, navigation }: any) => {
                     break;
             }
 
-            message += "\n" + k.Timestamp + " : " + k.Date + ", " + temps + " avec une moyenne de " + k.Temperature + "°C";
+            message += "\n" + k.Timestamp + " : " + k.Date + ", " + temps + " avec une moyenne de " + k.Temperature + "°C pour la matinée";
         }
 
         message += "\n\n" + "Envoyé via l'application de météo !" + "\n\n";
@@ -144,14 +181,14 @@ const Info = ({ route, navigation }: any) => {
                 {favoris == true ?
                     (
                         <Image
-                        style={styles.imageFavoris}
-                        source={require('../../assets/favoris.png')}
+                            style={styles.imageFavoris}
+                            source={require('../../assets/favoris.png')}
                         />
                     )
                     : (
                         <Image
-                        style={styles.imageFavoris}
-                        source={require('../../assets/favoris_vide.png')}
+                            style={styles.imageFavoris}
+                            source={require('../../assets/favoris_vide.png')}
                         />
                     )
                 }
@@ -180,13 +217,13 @@ const styles = StyleSheet.create({
         margin: 5,
         alignSelf: 'flex-end',
     },
-    textTitre:{
+    textTitre: {
         fontSize: 20,
         color: 'white',
         textAlign: 'center',
         marginBottom: 10
     },
-    textInfo:{
+    textInfo: {
         fontSize: 18,
         color: 'white',
     },
