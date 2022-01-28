@@ -25,5 +25,5 @@ Les données météos visibles sont les données actuelles pour le jour actuel e
 
 
 
-
-Application réalisée par FERRO JEAN.
+## Crédit
+Application réalisée par FERRO JEAN
