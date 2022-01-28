@@ -3,7 +3,7 @@
 Projet finale pour le cours d'application mobile. Application de météo
 
 
-# Installation
+## Installation
 
 Clonnez le repo de l'application avec la commande suivante : git clone https://github.com/skynokk/ProjetAppliMeteo.git
 Il vous faudra ensuite installer les dépendances pour cela faire un npm i
