@@ -16,9 +16,12 @@ L'application est testable sur android en appuyant sur la touche "a" ou sur web 
 
 ## Utilisation
 
-Pour commencer, vous pouvez rentrer un nom de ville ou vous géolocaliser.
+Pour commencer, vous pouvez rentrer un nom de ville ou vous géolocaliser
+
 Une fois sur la page météo d'une ville, vous pouvez ajouter celle-ci en favoris ou partager les données météos avec la fonction partage
-Les données météos visibles sont les données actuelles pour le jour actuel et les données matinal pour les autres jours.
+
+Les données météos visibles sont les données actuelles pour le jour actuel et les données matinal pour les autres jours
+
 
 
 Application réalisée par FERRO JEAN.
