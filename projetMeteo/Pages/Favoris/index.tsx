@@ -3,30 +3,24 @@ import { StyleSheet, Text, View, TextInput, Button, Image, FlatList, TouchableOp
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Favoris = ({ navigation }: any) => {
-    var [favoris, setFavoris] = useState([]);
     var tableauVille: { Nom: any }[] = [];
 
     const apiKey = "032cf4f8f4ea0479f5a02354c7508195";
 
-    //Fonction afin de récupérer les favoris
+    //Récupération des favoris a l'affichage de la page
     useEffect(() => {
         async function AsyncFonction() {
             await recupData();
-            //console.log(tableauVille);
         }
         AsyncFonction();
     }, []);
 
+    //Récupération des favoris
     const recupData = async () => {
-        //tableauVille = [];
-
         let jsonValue = await AsyncStorage.getItem('@favoris');
         jsonValue = jsonValue != null ? JSON.parse(jsonValue) : null;
-        // console.log(jsonValue);
 
         if (jsonValue != null) {
-            //var tabFavoris = jsonValue.replace("\"", "");
-            //var tabSplit = tabFavoris.split(",");
             for (let k of jsonValue) {
                 if (k != "") {
                     tableauVille.push({ Nom: k });
@@ -39,15 +33,14 @@ const Favoris = ({ navigation }: any) => {
 
     }
 
-    tableauVille.push({ Nom: "" });
-
+    tableauVille.push({ Nom: "Liste des Favoris" });
     var MeteoTableau: { Timestamp: any, Date: any; Temps: any; Temperature: any; Image: any }[] = [];
 
     //Ouverture de la ville
     const favorisOuverture = (ville: any) => {
         MeteoTableau = [];
 
-        if (ville != "") {
+        if (ville != "" && ville != "Liste des Favoris") {
             fetch('https://api.openweathermap.org/data/2.5/forecast?q=' + ville + '&units=metric&appid=' + apiKey)
                 .then((response) => response.json())
                 .then((json) => {
@@ -102,7 +95,7 @@ const Favoris = ({ navigation }: any) => {
                 renderItem={({ item }) => (
                     <TouchableOpacity onPress={() => { favorisOuverture(item.Nom) }}>
                         <View style={styles.item}>
-                            {item.Nom != '' ? <Text style={styles.textInfo}>{item.Nom}</Text> : null}
+                            {item.Nom != "Liste des Favoris" ? <Text style={styles.textInfo}>{item.Nom}</Text> : <Text style={styles.textInfoFavoris}>{item.Nom}</Text>}
                         </View>
                     </TouchableOpacity>
                 )}
@@ -118,17 +111,10 @@ const styles = StyleSheet.create({
         backgroundColor: '#0D1117',
         height: '100%',
     },
-    imageFavoris: {
-        width: 20,
-        height: 20,
-        margin: 5,
-        alignSelf: 'flex-end',
-    },
-    textTitre: {
-        fontSize: 20,
+    textInfoFavoris:{
+        fontSize: 25,
         color: 'white',
-        textAlign: 'center',
-        marginBottom: 10
+        textAlign: 'center'
     },
     textInfo: {
         fontSize: 18,
@@ -138,25 +124,13 @@ const styles = StyleSheet.create({
         backgroundColor: '#161B22',
         width: '100%',
         height: '100%',
-        padding: 2,
-        marginTop: 3,
-        marginBottom: 3,
+        padding: 6,
+        marginTop: 5,
+        marginBottom: 5,
         // borderWidth: 2,
         // borderColor: '#30363D',
         flex: 1,
         color: 'white',
-    },
-    imageItem: {
-        width: 75,
-        height: 75,
-        alignSelf: 'flex-end',
-        marginRight: 5,
-        marginBottom: 5,
-        marginTop: -25,
-        resizeMode: 'contain'
-    },
-    list: {
-
     }
 });
 
