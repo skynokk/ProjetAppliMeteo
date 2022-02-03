@@ -5,28 +5,23 @@ import * as Location from 'expo-location';
 
 const Item = ({ ville }: any) => (
   <View>
-    <Text>{ville}</Text>
+    <Text style={styles.ItemVille}>{ville}</Text>
   </View>
 );
 
 const Home = ({ navigation }: any) => {
   var [ville, setVille] = useState('');
   var [erreur, setErreur] = useState('');
-  const [filteredVille, setFilteredVille] = useState([]);
-  const [villeAuto, setVilleAuto] = useState([]);
-
-  const apiKey = "032cf4f8f4ea0479f5a02354c7508195";
+  var [tableauVilleRecherche, setTableauVilleRecherche] = useState([{Id : "", Ville: ""}]);
+  var [tableauVilleAutoComplete, setTableauVilleAutoComplete] = useState([{Id : "", Ville: ""}]);
   var MeteoTableau: { Timestamp: any, Date: any; Temps: any; Temperature: any; Image: any }[] = [];
-  var tableauVilleAuto: { Ville: any }[] = [];
+  const apiKey = "032cf4f8f4ea0479f5a02354c7508195";
 
-  tableauVilleAuto.push({ Ville: "test1" })
-  tableauVilleAuto.push({ Ville: "test2" })
-  tableauVilleAuto.push({ Ville: "test3" })
-
+  //Rechercher la météo de la ville
   const Recherche = () => {
     MeteoTableau = [];
 
-    // console.log(ville);
+    //console.log(ville);
     if (ville == "") {
       setErreur("Veuillez rentrer un nom de ville");
     } else {
@@ -83,11 +78,11 @@ const Home = ({ navigation }: any) => {
     }
   }
 
+  //Géolocalisation
   const Geolocalisation = async () => {
-    // var lat = 0;
-    // var lon = 0;
     let { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') {
+    
+    if (status === 'granted') {
       let location = await Location.getCurrentPositionAsync({});
       var lat = location.coords.latitude;
       var lon = location.coords.longitude;
@@ -95,51 +90,63 @@ const Home = ({ navigation }: any) => {
       fetch('https://api.openweathermap.org/data/2.5/weather?lat=' + lat.toString() + '&lon=' + lon.toString() + '&appid=' + apiKey)
         .then((response) => response.json())
         .then((json) => {
-          //console.log(json.name);
           ville = json.name;
           Recherche();
         })
+    }else{
+      console.log("Localisation interdite")
     }
   }
 
+  //Navigation vers la page favoris
   const favoris = () => {
     navigation.navigate("favoris");
   }
 
-  const apiGouvAdress = (search: any) => {
-    tableauVilleAuto = [];
+  //Recherche d'une liste de 5 villes depuis l'api gouv et selon les informations rentré par l'utilisateur
+  const trouverVille = (query: any) => {
+    setVille(query);
 
-    fetch('https://api-adresse.data.gouv.fr/search/?q=' + search)
-      .then((response) => response.json())
-      .then((json) => {
-        //console.log(json.features);
-        // tableauVilleAuto = [];
+    tableauVilleRecherche = [];
+    tableauVilleAutoComplete = [];
+    var tableauRecherche: { Id: any, Ville: any }[] = [];
 
-        for (let k of json.features) {
-          //console.log(k);
-          tableauVilleAuto.push({ Ville: k.properties.city })
-        }
-        //console.log(tableauVilleAuto);
-      })
+    //API GOUV pour le nom des villes
+    fetch('https://geo.api.gouv.fr/communes?nom='+ query+'&limit=5')
+    .then((response) => response.json())
+    .then((json) => {
+
+      var i = 0;
+      for (let k of json) {
+        i++;
+        tableauRecherche.push({ Id: i, Ville: k.nom });
+      }
+
+      setTableauVilleAutoComplete(tableauRecherche);
+
+      for(let k of tableauVilleAutoComplete){
+        tableauRecherche.push(k);
+      }
+    })
+
+    setTableauVilleRecherche(tableauRecherche);
   }
 
-  const trouverVille = (query: any) => {
-    setVille(query)
-    // if (query) {
-    //   const regex = new RegExp(`${query.trim()}`, 'i');
-    //   apiGouvAdress(regex);
-    // }
-  };
-
   const renderItem = ({ item }: any) => (
-    <TouchableOpacity onPress={AutoCompleteSelection}>
-      <Item ville={item.Ville} />
+    <TouchableOpacity 
+      style={styles.AutoComplete}
+      onPress={() => AutoCompleteSelection(item.Ville)}
+    >
+      <Item 
+        ville={item.Ville} 
+      />
     </TouchableOpacity>
 
   );
 
-  const AutoCompleteSelection = () => {
-    console.log("test");
+  const AutoCompleteSelection = async (villeAutocompletion: any) => {
+    ville = villeAutocompletion;
+    Recherche();
   }
 
   return (
@@ -160,11 +167,12 @@ const Home = ({ navigation }: any) => {
           keyboardType="default"
         />
 
-        {/* <FlatList
-          data={tableauVilleAuto}
+        <FlatList
+          data={tableauVilleRecherche}
           renderItem={renderItem}
-          keyExtractor={(item) => item.Ville}
-        /> */}
+          keyExtractor={(item) => item.Id}
+          extraData={tableauVilleRecherche}
+        />
 
         <Text>{erreur}</Text>
 
@@ -183,7 +191,7 @@ const Home = ({ navigation }: any) => {
         />
 
         <TouchableOpacity onPress={favoris} style={styles.favorisDiv}>
-          <Text>Voir ses favoris
+          <Text style={styles.favorisText}>Voir ses favoris
             <Image
               style={styles.favoris}
               source={require('../../assets/favoris.png')}
@@ -209,6 +217,7 @@ const styles = StyleSheet.create({
     margin: 12,
     borderWidth: 1,
     padding: 10,
+    color: '#ffffff',
   },
   image: {
     width: 100,
@@ -227,11 +236,25 @@ const styles = StyleSheet.create({
   favoris: {
     width: 20,
     height: 20,
+    marginLeft: 10,
+  },
+  favorisText:{
+    color: "black",
+    fontSize: 20,
+    margin: 20,
   },
   favorisDiv: {
     justifyContent: 'flex-end',
     alignItems: 'flex-end'
-  }
+  },
+  AutoComplete: {
+    // color: 'white',
+    // alignItems: "center"
+  },
+  ItemVille:{
+    margin: 4,
+    fontSize: 18,
+  },
 });
 
 
