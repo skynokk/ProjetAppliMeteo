@@ -30,4 +30,4 @@ Les données météos visibles sont les données actuelles pour le jour actuel e
 
 ## APK
 
-L'apk est disponnible directement dans le fichier APK
+L'apk est disponible directement dans le fichier APK
