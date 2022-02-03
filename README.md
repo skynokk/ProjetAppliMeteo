@@ -28,6 +28,9 @@ Une fois sur la page météo d'une ville, vous pouvez ajouter celle-ci en favori
 Les données météos visibles sont les données actuelles pour le jour actuel et les données matinal pour les autres jours
 
 
+## APK
+
+L'apk est disponnible directement dans le fichier APK
 
 
 ## Crédit
